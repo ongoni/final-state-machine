@@ -1,13 +1,15 @@
-import finalstatemachine.FinalStateMachine
+import finalstatemachine.FinalStateMachineExamples
 
 class App {
 
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            val machine = FinalStateMachine()
+            val firstExample = FinalStateMachineExamples.getFirstExample()
+            println(firstExample.maxString("abaaaacb", 1))
 
-            println("Hello world!")
+            val secondExample = FinalStateMachineExamples.getSecondExample()
+            println(secondExample.maxString("defabcdefab", 0))
         }
     }
 
