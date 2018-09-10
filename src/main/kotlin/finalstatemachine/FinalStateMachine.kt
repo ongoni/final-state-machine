@@ -1,33 +1,38 @@
 package finalstatemachine
 
-class FinalStateMachine(initState: State,
-                        private var startStates: MutableList<State>,
-                        private var finalStates: MutableList<State>,
-                        private var operations: MutableMap<State, MutableMap<Char, State>>
+class FinalStateMachine(initStates: MutableSet<State>,
+                        private var startStates: MutableSet<State>,
+                        private var finalStates: MutableSet<State>,
+                        private var operations: MutableMap<State, MutableMap<Char, MutableSet<State>>>
 ) {
 
-    private var currentState: State = initState
+    private var currentStates: MutableSet<State>
 
     init {
-        if (!startStates.any { x -> x.name == initState.name }) {
+        if (!startStates.all { x -> startStates.contains(x) }) {
             throw Exception("Invalid initial state")
         }
 
-        currentState = initState
+        currentStates = initStates
     }
 
-    private fun setCurrentState(newState: State) {
-        if (!startStates.any { x -> x.name == newState.name }) {
-            throw Exception("Invalid start state given")
-        }
+    private fun setCurrentStates(newStates: MutableSet<State>) {
+//        if (!startStates.any { x -> x.name == newState.name }) {
+//            throw Exception("Invalid start state given")
+//        }
 
-        currentState = newState
+        currentStates = newStates
     }
 
-    private fun getCurrentState() = currentState
+    private fun getCurrentStates() = currentStates
 
     fun handle(symbol: Char) {
-        currentState = operations[currentState]!![symbol] ?: throw Exception("Invalid symbol")
+        val newStates = mutableSetOf<State>()
+
+        currentStates.map { x -> operations[x]!![symbol] ?: throw Exception("Invalid symbol") }
+                .forEach { newStates.addAll(it) }
+
+        setCurrentStates(newStates)
     }
 
     fun maxString(command: String, startIndex: Int) : Pair<Int, Boolean> {
@@ -37,11 +42,13 @@ class FinalStateMachine(initState: State,
         command.substring(startIndex).forEachIndexed { index, symbol ->
             handle(symbol)
 
-            if (finalStates.any { x -> x.name == currentState.name }) {
+            if (finalStates.all { x -> currentStates.contains(x) }) {
                 finalStateReached = true
                 count = index + 1
             }
         }
+
+        this.currentStates = startStates
 
         return Pair(count, finalStateReached)
     }
